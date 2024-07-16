@@ -1,3 +1,0 @@
-/home/jc/userData/2_Project/cpp_code/vision_measure/build/CMakeFiles/rebuild_cache.dir
-/home/jc/userData/2_Project/cpp_code/vision_measure/build/CMakeFiles/edit_cache.dir
-/home/jc/userData/2_Project/cpp_code/vision_measure/build/CMakeFiles/test.dir
