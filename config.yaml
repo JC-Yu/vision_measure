@@ -1,0 +1,8 @@
+%YAML:1.0
+---
+# 使用的摄像头类型，有两个选项：填入“Web_Cam”表示使用外置摄像头，填入“Internal_Cam”表示使用笔记本自带摄像头
+Camera: "Internal_Cam"
+# 编码的位数
+Bit_N: 12
+# 椭圆圆度评估阈值（0～1）
+R_threshold: 0.85
