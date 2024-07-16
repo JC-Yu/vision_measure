@@ -2,7 +2,7 @@
 
 namespace cct
 {
-    // CCT编码提取函数
+    // CCT编码提取和识别函数
     void CCTExtractor::extract(void)
     {
         // 1. 图像预处理
@@ -88,7 +88,8 @@ namespace cct
                 // (6) 解码
                 if(isCCT(cct_code)) {   // 判断该区域是否真的包含CCT码
                     int id = cctDecoding(cct_code, N);  // 解码，并获取解码编号结果
-                    result_list.emplace_back(box1.center, id);
+                    // result_list.emplace_back(box1.center, id);
+                    results.insert(std::make_pair(id, box1.center));
                     // 在图像中画出拟合的椭圆和解码后的数字和中心点
                     cv::ellipse(image_clone, box1, cv::Scalar(0, 255, 0));
                     cv::ellipse(image_clone, box2, cv::Scalar(0, 255, 0));
@@ -102,9 +103,9 @@ namespace cct
         cv::imshow("result", image_clone);
     }
 
-    std::vector<Result> CCTExtractor::getExtractionResult(void) const
+    std::map<int, cv::Point2f> CCTExtractor::getExtractionResult(void) const
     {
-        return this->result_list;
+        return this->results;
     }
 
     cv::Mat LS_getAffineTransform(const std::vector<cv::Point2f>& src, const std::vector<cv::Point2f>& dst)
@@ -285,5 +286,41 @@ namespace cct
         }
         return B2D(temp);
     }
-}
 
+    cv::Scalar hsv2bgr(const float h, const float s, const float v)
+    {
+        cv::Mat hsv(1, 1, CV_8UC3, cv::Scalar(h/2, s*255, v*255));
+        cv::Mat bgr;
+        cv::cvtColor(hsv, bgr, cv::COLOR_HSV2BGR);
+        cv::Vec3b color = bgr.at<cv::Vec3b>(0, 0);
+        return cv::Scalar(color[0], color[1], color[2]);
+    }
+
+    PointPairs cctMatching(const cv::Mat& img1, const cv::Mat& img2, const Results& res1, const Results& res2)
+    {
+        PointPairs pps;
+        // 查找两张图像中的匹配点
+        for(auto r : res1) {
+            auto it = res2.find(r.first);
+            if(it != res2.end()) {
+                pps.emplace_back(std::make_pair(r.second, it->second));
+            }
+        }
+        // 在图像中可视化匹配点
+        cv::Mat image_matched = cv::Mat::zeros(cv::Size(img1.cols + img2.cols, std::max(img1.rows, img2.rows)), img1.type());
+        cv::Mat left(image_matched, cv::Rect(0, 0, img1.cols, img1.rows));
+        img1.copyTo(left);
+        cv::Mat right(image_matched, cv::Rect(img1.cols, 0, img2.cols, img2.rows));
+        img2.copyTo(right);
+        const cv::Point2f offset(img1.cols, 0);
+        for(int i=0; i<pps.size(); ++i) {
+            const float hue = (i * 360.0f) / pps.size();
+            cv::Scalar color = hsv2bgr(hue, 1.0f, 1.0f);
+            cv::circle(image_matched, pps[i].first, 2, color, 2);
+            cv::circle(image_matched, pps[i].second + offset, 2, color, 2);
+            cv::line(image_matched, pps[i].first, pps[i].second + offset, color, 1);
+        }
+        cv::imshow("image_matched", image_matched);
+        return pps;
+    }
+}

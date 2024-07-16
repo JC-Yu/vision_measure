@@ -3,31 +3,26 @@
 
 #include <opencv2/opencv.hpp>
 #include <deque>
+#include <map>
 #include <numeric>
 
 namespace cct
 {
-    struct Result 
-    {
-        Result() = default;
-        Result(const cv::Point2f& center_, const int id_) : center(center_), id(id_) { }
-        cv::Point2f center;
-        int id = 0;
-    };
-
+    using Results = std::map<int, cv::Point2f>;
+    using PointPairs = std::vector<std::pair<cv::Point2f, cv::Point2f>>;
     class CCTExtractor
     {
         public:
             explicit CCTExtractor(const cv::Mat& img, const int bit_N, const double R_threshold) : image(img), N(bit_N), R_th(R_threshold) { }
             explicit CCTExtractor(const cv::Mat& img) : image(img) { }
-            std::vector<Result> getExtractionResult(void) const;
+            Results getExtractionResult(void) const;
             void extract(void);
 
         private:
             cv::Mat image;
             int N = 12;
             double R_th = 0.85;
-            std::vector<Result> result_list;
+            Results results;
     };
 
     inline cv::Mat LS_getAffineTransform(const std::vector<cv::Point2f>& src, const std::vector<cv::Point2f>& dst);
@@ -38,6 +33,8 @@ namespace cct
     inline std::deque<int> D2B(const int D, const size_t N);
     inline void moveBits(std::deque<int>& seq);
     inline int cctDecoding(const cv::Mat& cct_code, const int N);
+    inline cv::Scalar hsv2bgr(const float h, const float s, const float v);
+    PointPairs cctMatching(const cv::Mat& img1, const cv::Mat& img2, const Results& res1, const Results& res2);
 }
 
 #endif
