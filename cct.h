@@ -6,17 +6,19 @@
 #include <map>
 #include <numeric>
 
-namespace cct
+namespace vm
 {
     using Results = std::map<int, cv::Point2f>;
     using PointPairs = std::vector<std::pair<cv::Point2f, cv::Point2f>>;
     class CCTExtractor
     {
         public:
-            explicit CCTExtractor(const cv::Mat& img, const int bit_N, const double R_threshold) : image(img), N(bit_N), R_th(R_threshold) { }
-            explicit CCTExtractor(const cv::Mat& img) : image(img) { }
+            explicit CCTExtractor(const cv::Mat& img, const int bit_N, const double R_threshold) : image(img), N(bit_N), R_th(R_threshold) 
+            { ++counter; }
+            explicit CCTExtractor(const cv::Mat& img) : image(img) { ++counter; }
             Results getExtractionResult(void) const;
-            void extract(void);
+            cv::Mat extract(void);
+            static int counter;
 
         private:
             cv::Mat image;
@@ -24,7 +26,6 @@ namespace cct
             double R_th = 0.85;
             Results results;
     };
-
     inline cv::Mat LS_getAffineTransform(const std::vector<cv::Point2f>& src, const std::vector<cv::Point2f>& dst);
     inline cv::Mat imageNormalization(const cv::Mat& image_0_255);
     inline bool isCCT(const cv::Mat& image_bin);

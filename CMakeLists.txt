@@ -12,6 +12,7 @@ add_executable(
     test 
     test.cpp
     cct.cpp
+    img_trans.cpp
 )
 
 target_link_libraries(

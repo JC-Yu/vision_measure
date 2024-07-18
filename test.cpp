@@ -1,5 +1,6 @@
 #include <iostream>
 #include "cct.h"
+#include "img_trans.h"
 using namespace std;
 
 int main(int argc, char *argv[])
@@ -17,12 +18,14 @@ int main(int argc, char *argv[])
         int camera_index = 0;
         if(camera == "Web_Cam")
             camera_index = 2;
+        cout << "==> Camera initializing..." << endl;
         cv::VideoCapture cap(camera_index);
         // 检查摄像头是否成功打开
         if (!cap.isOpened()) {
             std::cerr << "Error: Could not open camera" << std::endl;
             return -1;
         }
+        cout << "==> Camera is ready" << endl;
         cv::Mat frame;
         while (true) {
             // 从摄像头捕获一帧图像
@@ -33,12 +36,9 @@ int main(int argc, char *argv[])
                 break;
             }
             // 执行CCT解码程序
-            cct::CCTExtractor ce(frame, N, R_th);
-            ce.extract();
-            map<int, cv::Point2f> results = ce.getExtractionResult(); 
-            for(auto r : results) {
-                cout << "==> id = " << r.first << " , center = " << r.second << endl;
-            }
+            vm::CCTExtractor ce(frame, N, R_th);
+            cv::Mat image_extraction = ce.extract();
+            cv::imshow("result", image_extraction);
             // 如果按下ESC键，则退出循环
             if (cv::waitKey(30) == 27) {
                 break;
@@ -53,12 +53,10 @@ int main(int argc, char *argv[])
     if(inputFormat == "Image") {
         const string imagePath = fs["ImagePath"];
         cv::Mat image = cv::imread(imagePath);
-        cct::CCTExtractor ce(image, N, R_th);
-        ce.extract();
+        vm::CCTExtractor ce(image, N, R_th);
+        cv::Mat image_extraction = ce.extract();
+        cv::imwrite("cct_extraction_" + std::to_string(vm::CCTExtractor::counter) + ".jpg", image_extraction);
         map<int, cv::Point2f> res = ce.getExtractionResult(); 
-        for(auto r : res) {
-            cout << "==> id = " << r.first << " , center = " << r.second << endl;
-        }
         cv::waitKey();
     }
     // 多张图像输入格式
@@ -69,22 +67,28 @@ int main(int argc, char *argv[])
         if(dir.back() != '/')
             dir += '/';
         vector<cv::Mat> images;
-        vector<map<int, cv::Point2f>> results_list;
+        vm::Stich2Images sticher(N, R_th);  // 定义图像拼接器（用于拼接两张图像）
         for(int i=0; i<nums; ++i) {
-            cv::Mat image = cv::imread(dir + to_string(i+1) + format);
-            cct::CCTExtractor ce(image, N, R_th);
-            ce.extract();
-            map<int, cv::Point2f> res = ce.getExtractionResult(); 
-            for(auto r : res) {
-                cout << "==> id = " << r.first << " , center = " << r.second << endl;
-            }
-            images.emplace_back(image);
-            results_list.emplace_back(res);
-            cv::waitKey();
+            images.emplace_back(cv::imread(dir + to_string(i+1) + format));
         }
-        cct::PointPairs pps = cct::cctMatching(images[0], images[1], results_list[0], results_list[1]);
-        cout << "==> Found points pair nums = " << pps.size() << endl;
-        cv::waitKey();
+        cout << "==> Image loaded, nums = " << images.size() << endl;
+        // 进行迭代式的图像拼接
+        cout << "==> Start image stiching..." << endl;
+        vector<cv::Mat> stiched_list = images;
+        while(stiched_list.size() != 1) {
+            int N = stiched_list.size();
+            int count = N / 2;
+            vector<cv::Mat> temp;
+            for(int i=0; i<count; ++i) {
+                cv::Mat result = sticher(stiched_list[2 * i], stiched_list[2 * i + 1]);
+                temp.push_back(result);
+            }
+            if(N % 2 == 1)
+                temp.push_back(stiched_list[N - 1]);
+            stiched_list = temp;
+        }
+        cv::imwrite("imageStiched.jpg", stiched_list[0]);
+        cout << "==> Stiching complete!" << endl;
     }
     return 0;
 }

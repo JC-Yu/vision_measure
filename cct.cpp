@@ -1,14 +1,15 @@
 #include "cct.h"
 
-namespace cct
+namespace vm
 {
+    int CCTExtractor::counter = 0;
     // CCT编码提取和识别函数
-    void CCTExtractor::extract(void)
+    cv::Mat CCTExtractor::extract(void)
     {
         // 1. 图像预处理
         cv::Mat image_clone = image.clone();
         cv::Mat image_gray, image_binary;
-        cv::cvtColor(image, image_gray, cv::COLOR_BGR2GRAY);    // 灰度化
+        cv::cvtColor(image_clone, image_gray, cv::COLOR_BGR2GRAY);    // 灰度化
         double otsuThreshold = cv::threshold(image_gray, image_binary, 0, 255, cv::THRESH_OTSU | cv::THRESH_BINARY);    // otsu二值化
 
         // 2. 提取轮廓
@@ -99,8 +100,11 @@ namespace cct
                 }
             }
         }
-        cv::namedWindow("result", cv::WINDOW_FREERATIO | cv::WINDOW_FULLSCREEN);
-        cv::imshow("result", image_clone);
+        // cv::namedWindow("result", cv::WINDOW_NORMAL);
+        // cv::resize(image_clone, image_clone, cv::Size(1920, 1080));
+        // cv::imshow("result", image_clone);
+        return image_clone;
+        // cv::imwrite("cct_extraction_" + std::to_string(CCTExtractor::counter) + ".jpg", image_clone);
     }
 
     std::map<int, cv::Point2f> CCTExtractor::getExtractionResult(void) const
@@ -320,7 +324,8 @@ namespace cct
             cv::circle(image_matched, pps[i].second + offset, 2, color, 2);
             cv::line(image_matched, pps[i].first, pps[i].second + offset, color, 1);
         }
-        cv::imshow("image_matched", image_matched);
+        // cv::imshow("image_matched", image_matched);
+        cv::imwrite("image_matching_" + std::to_string(CCTExtractor::counter) + ".jpg", image_matched);
         return pps;
     }
 }
