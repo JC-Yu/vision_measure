@@ -6,15 +6,15 @@
 
 针对图像中出现的CCT码，程序可以自动检测并识别出对应的ID号（即解码），具体效果如下图所示。
 
-![cct_extraction_1](/home/jc/userData/2_Project/cpp_code/vision_measure/resources/demo/cct_extraction_1.jpg)
+![cct_extraction_1](https://github.com/JC-Yu/vision_measure/tree/main/resources/demo/cct_extraction_1.jpg)
 
 基于解码结果，可以得到特征点信息。在多张图像中基于特征点匹配，即可完成图像的拼接任务。具体匹配效果如下图所示。
 
-![image_matching_2](/home/jc/userData/2_Project/cpp_code/vision_measure/resources/demo/image_matching_2.jpg)
+![image_matching_2](https://github.com/JC-Yu/vision_measure/tree/main/resources/demo/image_matching_2.jpg)
 
 利用匹配点信息求解图像之间的单应矩阵，即可对图像进行变换，从而实现拼接，下图为2张图片的拼接效果展示。
 
-![imageStiched](/home/jc/userData/2_Project/cpp_code/vision_measure/resources/demo/imageStiched.jpg)
+![imageStiched](https://github.com/JC-Yu/vision_measure/tree/main/resources/demo/imageStiched.jpg)
 
 # 运行说明
 
@@ -29,7 +29,7 @@
 
 修改工程中的 `config.yaml` 文件，具体需要修改存放图片和文件夹的路径，可根据注释信息进行修改。
 
-![config](/home/jc/userData/2_Project/cpp_code/vision_measure/resources/demo/config.png)
+![config](https://github.com/JC-Yu/vision_measure/tree/main/resources/demo/config.png)
 
 2. 编译
 
